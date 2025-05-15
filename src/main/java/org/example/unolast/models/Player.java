@@ -23,6 +23,13 @@ public class Player {
         }
     }
 
+    public void removeCard(Card card) {
+        // Elimina de la lista lógica
+        this.hand.remove(card);
+
+    }
+
+
     public String getNickname() { return nickname; }
     public boolean isHuman() { return isHuman; }
     public ObservableList<Card> getHand() { return hand; }

@@ -55,38 +55,56 @@ public class GameController {
         imageViewTopCard.setImage(image);
     }
 
-    private void initializeHumanHandView() {
-        listViewHumanHand.setOrientation(Orientation.HORIZONTAL);
-        listViewHumanHand.setItems(human.getHand());
-
-        listViewHumanHand.setCellFactory(lv -> new ListCell<Card>() {
-            private final ImageView imageView = new ImageView();
-
-            @Override
-            protected void updateItem(Card card, boolean empty) {
-                super.updateItem(card, empty);
-                if (empty || card == null) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    imageView.setFitWidth(100);
-                    imageView.setFitHeight(100);
-                    imageView.setPreserveRatio(true);
-
-                    Image image = new Image(Objects.requireNonNull(getClass().getResource(
-                            "/org/example/unolast/" + card.getImagePath())).toExternalForm());
-                    imageView.setImage(image);
-
-                    setText(null);
-                    setGraphic(imageView);
-                }
-            }
-        });
-    }
-
     public void setComputer(Player computer) {
         this.computer = computer;
         initializeComputerHandView();
+    }
+    private void initializeHumanHandView() {
+        listViewHumanHand.setCellFactory(param -> {
+            listViewHumanHand.setOrientation(Orientation.HORIZONTAL);
+
+            ImageView imageView = new ImageView();
+            imageView.setFitWidth(60);
+            imageView.setFitHeight(90);
+
+            ListCell<Card> cell = new ListCell<>() {
+                @Override
+                protected void updateItem(Card card, boolean empty) {
+                    super.updateItem(card, empty);
+                    if (empty || card == null) {
+                        setGraphic(null);
+                    } else {
+                        String imagePath = "/org/example/unolast/" + card.getImagePath();
+                        Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream(imagePath)));
+                        imageView.setImage(image);
+                        setGraphic(imageView);
+                    }
+                }
+            };
+
+            // 👉 when the mouse is clicked
+            cell.setOnMouseClicked(event -> {
+                Card selectedCard = cell.getItem();
+                if (selectedCard != null && isPlayable(selectedCard)) {
+                    //  Actualiza la carta superior
+                    topCard = selectedCard;
+                    setTopCard(topCard); // actualiza imageViewTopCard
+
+                    //  Elimina la carta del modelo
+                    human.removeCard(selectedCard);
+
+                    //  Actualiza la vista del ListView
+                    listViewHumanHand.getItems().setAll(human.getHand());
+                } else {
+                    System.out.println("Carta no jugable: " + selectedCard);
+                }
+            });
+
+            return cell;
+        });
+
+        // Mostrar cartas del jugador al inicializar
+        listViewHumanHand.getItems().setAll(human.getHand());
     }
 
     private void initializeComputerHandView() {
@@ -133,6 +151,12 @@ public class GameController {
         human.printHand();
         System.out.println("***********computer hand");
         computer.printHand();
+    }
+
+    private boolean isPlayable(Card selectedCard) {
+        return selectedCard.getColor().equals(topCard.getColor()) ||
+                selectedCard.getValue().equals(topCard.getValue()) ||
+                selectedCard.getColor().equals("wild");
     }
 
 }
